@@ -23,13 +23,33 @@
 .simulation-select{width:100%;margin-top:5px;padding:10px 12px;color:#fff;background:#14282d;border:1px solid #ffffff38;border-radius:9px;font-size:13px}
 .simulation-select:focus-visible{outline:2px solid #d6b779;outline-offset:2px}
 .primary-button:disabled{opacity:.5;cursor:default}
-.map-activity{min-width:156px;padding:9px 10px 7px;border:1px solid #e8d29b;border-radius:12px;background:#14282d;color:#fff;text-align:center;box-shadow:0 5px 20px #0008;pointer-events:none}
-.map-activity-group{display:flex;gap:7px;justify-content:center;margin-bottom:3px}
-.map-activity-player{position:relative;display:inline-block;font-size:25px;line-height:1.4}
-.map-activity-action{position:absolute;right:-4px;bottom:0;font-size:15px;line-height:1;transform-origin:left bottom;animation:activity-action .95s ease-in-out var(--player-delay) infinite}
-.map-activity[data-place="golf"] .map-activity-action,.map-activity[data-place="billiards"] .map-activity-action{animation-name:activity-swing}
-.map-activity strong{display:block;color:#f2d69c;font-size:11px}
-@keyframes activity-action{0%,100%{transform:translate(1px,1px)}50%{transform:translate(-4px,-8px) rotate(-15deg)}}
-@keyframes activity-swing{0%,100%{transform:rotate(18deg)}47%{transform:translate(4px,-7px) rotate(-42deg)}}
-@media(prefers-reduced-motion:reduce){.map-activity-action{animation:none}}
+.map-activity{width:244px;padding:9px;border:1px solid #e8d29b;border-radius:13px;background:#14282d;color:#fff;text-align:center;box-shadow:0 5px 20px #0008;pointer-events:none}
+.map-activity-group{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;margin-bottom:6px}
+.map-activity-player{position:relative;display:block;height:62px;overflow:hidden;border-radius:7px;background:#29463e}
+.map-activity-person{position:absolute;top:2px;left:5px;font-size:27px;line-height:1.3}
+.map-activity-equipment{position:absolute;bottom:1px;right:3px;font-size:22px;line-height:1.1}
+.map-activity-action{position:absolute;right:15px;bottom:9px;font-size:15px;line-height:1;animation:activity-lift 1.6s ease-in-out var(--player-delay) infinite}
+.map-activity strong{display:block;color:#f2d69c;font-size:12px}
+[data-activity="golf"] .map-activity-player{background:linear-gradient(#224947 48%,#41623c 49%)}
+[data-activity="golf"] .map-activity-person{animation:golf-swing 1.6s ease-in-out var(--player-delay) infinite;transform-origin:bottom center}
+[data-activity="golf"] .map-activity-action{animation-name:golf-ball;font-size:10px;right:25px}
+[data-activity="billiards"] .map-activity-player{background:linear-gradient(#233839 52%,#21684e 53%);border-bottom:3px solid #886344}
+[data-activity="billiards"] .map-activity-player::after{content:'';position:absolute;left:-2px;bottom:14px;width:27px;height:3px;border-radius:2px;background:#f1c07d;transform:rotate(-15deg);animation:cue-shot 1.6s ease-in-out var(--player-delay) infinite}
+[data-activity="billiards"] .map-activity-action{animation-name:billiard-ball;font-size:9px;right:25px;bottom:10px}
+[data-activity="meal"] .map-activity-player{background:linear-gradient(#2e4842 58%,#765540 59%)}
+[data-activity="meal"] .map-activity-action::after{content:'🥢';position:absolute;right:-6px;top:-1px;font-size:11px}
+[data-activity="beer"] .map-activity-player{background:linear-gradient(#544239 58%,#856045 59%)}
+[data-activity="beer"] .map-activity-action{font-size:23px;animation-name:beer-sip}
+.simulation-clock{padding:7px 9px;border:1px solid #ffffff35;border-radius:10px;background:#14282d;color:#fff;font-variant-numeric:tabular-nums}
+.simulation-clock span{display:flex;align-items:center;gap:5px;color:#ebce8e;font-size:10px}
+.simulation-clock strong{display:block;font-size:23px;line-height:1.1}
+.simulation-clock small{font-size:10px}
+.simulation-clock progress{display:block;width:100%;height:4px;margin-top:4px;accent-color:#d6b779}
+@keyframes activity-lift{0%,75%,100%{transform:none}35%,55%{transform:translate(-9px,-23px) rotate(-13deg)}}
+@keyframes beer-sip{0%,76%,100%{transform:none}35%,57%{transform:translate(-9px,-20px) rotate(-35deg)}}
+@keyframes golf-swing{0%,100%{transform:none}30%{transform:rotate(-19deg)}48%,62%{transform:rotate(15deg)}}
+@keyframes golf-ball{0%,43%{transform:none;opacity:1}70%,99%{transform:translate(24px,-33px);opacity:0}100%{opacity:1}}
+@keyframes cue-shot{0%,100%{transform:rotate(-15deg)}30%{transform:translateX(-8px) rotate(-15deg)}45%,60%{transform:translateX(9px) rotate(-15deg)}}
+@keyframes billiard-ball{0%,44%{transform:none}73%,100%{transform:translate(22px,3px)}}
+@media(prefers-reduced-motion:reduce){.map-activity-person,.map-activity-action,.map-activity-player::after{animation:none!important}}
 @media(max-width:640px){.map-stop-label{max-width:135px;padding:5px 6px;gap:5px}.map-stop-number{width:22px;height:22px}.map-stop-content strong,.map-stop-content small{font-size:9px}}
