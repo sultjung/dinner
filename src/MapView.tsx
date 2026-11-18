@@ -78,8 +78,8 @@ export default function MapView({restaurant,mode,resolved,route,agenda,focusedPl
   const k=window.kakao;
   const current=focusedPlace?resolved[focusedPlace]?.coord:null;
   if(current){
-   map.current.panTo(new k.maps.LatLng(current.lat,current.lng));
-   map.current.setLevel(3,{animate:true});
+   map.current.setCenter(new k.maps.LatLng(current.lat,current.lng));
+   map.current.setLevel(1,{animate:true});
   }else{
    const bounds=new k.maps.LatLngBounds();
    let count=0;
