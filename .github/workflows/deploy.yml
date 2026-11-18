@@ -38,3 +38,28 @@ jobs:
     steps:
       - id: deployment
         uses: actions/deploy-pages@v4
+      - name: Verify deployed HTML and assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          URL="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/"
+          echo "Checking deployed site: $URL"
+          for attempt in 1 2 3 4 5; do
+            if curl -fLsS --max-time 15 "$URL?verify=${GITHUB_SHA}" -o /tmp/page.html; then
+              if grep -q "/assets/" /tmp/page.html; then
+                echo "PASS: built asset paths appear in deployed HTML"
+                head -c 700 /tmp/page.html
+                echo
+                exit 0
+              else
+                echo "WARNING: HTML does not reference built assets"
+                head -c 700 /tmp/page.html
+                echo
+              fi
+            else
+              echo "Fetch failed, attempt $attempt"
+            fi
+            sleep 5
+          done
+          echo "::error::Pages is not serving Vite-built HTML; verify Pages Source is GitHub Actions."
+          exit 1
