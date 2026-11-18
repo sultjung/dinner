@@ -63,3 +63,27 @@ jobs:
           done
           echo "::error::Pages is not serving Vite-built HTML; verify Pages Source is GitHub Actions."
           exit 1
+      - name: Browser smoke test for React rendering
+        shell: bash
+        run: |
+          set -euo pipefail
+          URL="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/?browser=${GITHUB_SHA}"
+          if command -v google-chrome >/dev/null 2>&1; then
+            CHROME=google-chrome
+          elif command -v chromium >/dev/null 2>&1; then
+            CHROME=chromium
+          else
+            echo "::warning::No Chromium/Chrome executable available; skipping browser test"
+            exit 0
+          fi
+          "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --virtual-time-budget=12000 --dump-dom "$URL" >/tmp/rendered.html 2>/tmp/chrome.log || true
+          if grep -q "골프존파크 용두포스빌점" /tmp/rendered.html; then
+            echo "PASS: React rendered itinerary in headless browser"
+          else
+            echo "::error::React did not render its itinerary in headless browser"
+            echo "Headless browser log:"
+            tail -n 35 /tmp/chrome.log || true
+            echo "DOM preview:"
+            head -c 1100 /tmp/rendered.html || true
+            exit 1
+          fi
