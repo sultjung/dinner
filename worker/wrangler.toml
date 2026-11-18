@@ -1,0 +1,6 @@
+name = "saturday-golf-route"
+main = "index.js"
+compatibility_date = "2026-11-01"
+# Replace with exact deployed origins, comma-separated. Do not use '*' on a public proxy.
+[vars]
+ALLOWED_ORIGINS = "https://YOURNAME.github.io,http://localhost:5173"

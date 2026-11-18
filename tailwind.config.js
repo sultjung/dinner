@@ -1,0 +1,1 @@
+export default {content:['./index.html','./src/**/*.{ts,tsx}'],theme:{extend:{colors:{ink:'#091419',panel:'#132329',gold:'#d6b779',muted:'#97a9a9',emerald:'#66bca4'},fontFamily:{sans:['Noto Sans KR','sans-serif'],display:['DM Sans','Noto Sans KR','sans-serif']}}},plugins:[]};
