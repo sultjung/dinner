@@ -50,7 +50,7 @@ export async function resolvePlaces(kakao:any):Promise<Record<PlaceId,ResolvedPl
   const expected=normalize(p.name);
   const candidates=data.filter(x=>{
    const n=normalize(x.place_name||'');
-   const nameMatch=id==='final'?n.includes('푸르지오')&&n.includes('제기'):n.includes(expected)||expected.includes(n);
+   const nameMatch=id==='final'?n===normalize(p.search):n.includes(expected)||expected.includes(n);
    const address=(x.road_address_name||'')+' '+(x.address_name||'');
    return nameMatch&&(!p.addressHint||address.includes(p.addressHint)||address.replace(/\s/g,'').includes(p.addressHint.replace(/\s/g,'')));
   }).map(x=>({name:x.place_name,address:x.road_address_name||x.address_name,coord:{lat:Number(x.y),lng:Number(x.x)}}));
@@ -59,8 +59,9 @@ export async function resolvePlaces(kakao:any):Promise<Record<PlaceId,ResolvedPl
  };
  const entries=await Promise.all((Object.keys(places) as PlaceId[]).map(lookup));return Object.fromEntries(entries.map(x=>[x.id,x])) as Record<PlaceId,ResolvedPlace>;
 }
-export const kakaoSearchLink=(id:PlaceId)=>`https://map.kakao.com/?q=${encodeURIComponent(places[id].name)}`;
-export const kakaoDirections=(from:PlaceId,to:PlaceId,mode:TravelMode)=>`https://map.kakao.com/?sName=${encodeURIComponent(places[from].name)}&eName=${encodeURIComponent(places[to].name)}&target=${mode==='walking'?'walk':'car'}`;
+const kakaoPlaceName=(id:PlaceId)=>id==='final'?places.final.search:places[id].name;
+export const kakaoSearchLink=(id:PlaceId)=>`https://map.kakao.com/?q=${encodeURIComponent(kakaoPlaceName(id))}`;
+export const kakaoDirections=(from:PlaceId,to:PlaceId,mode:TravelMode)=>`https://map.kakao.com/?sName=${encodeURIComponent(kakaoPlaceName(from))}&eName=${encodeURIComponent(kakaoPlaceName(to))}&target=${mode==='walking'?'walk':'car'}`;
 export async function getSegments(ids:PlaceId[],resolved:Record<PlaceId,ResolvedPlace>,mode:TravelMode,signal:AbortSignal):Promise<Segment[]>{
  const proxy=import.meta.env.VITE_ROUTE_PROXY_URL?.replace(/\/$/,'');if(!proxy)throw new Error('실제 길찾기용 서버리스 프록시가 연결되지 않았습니다.');
  const segments:Segment[]=[];

@@ -9,7 +9,7 @@ export const places:Record<PlaceId,Place>={
  billiards:{id:'billiards',name:'SBS당구프로',search:'SBS당구프로 왕산로26길',address:'서울 동대문구 왕산로26길 13 2층',addressHint:'왕산로26길 13',category:'당구',description:'친구들과 60분 당구',menu:'당구',hours:'확인 필요',parking:'확인 필요',phone:'확인 필요',verified:false},
  sashimi:{id:'sashimi',name:'전시회 제기본점',search:'전시회 제기본점',address:'서울 동대문구 왕산로 131',addressHint:'왕산로 131',category:'회 · 해산물',description:'제철회와 모둠회를 즐기는 점심',menu:'모둠회 · 제철회',hours:'11:00–22:00 (방문 전 재확인)',parking:'인근 주차장 이용 여부 확인 필요',phone:'02-6958-8570',verified:false},
  beef:{id:'beef',name:'신숯불탁탁',search:'신숯불탁탁 마장동',address:'서울 성동구 고산자로24길 12-1',addressHint:'고산자로24길 12-1',category:'한우 · 숯불구이',description:'고기 구매와 상차림을 분리해 계산',menu:'한우 · 상차림 · 식사류',hours:'10:30–22:30 (방문 전 재확인)',parking:'확인 필요',phone:'02-2299-4987',verified:false},
- final:{id:'final',name:'제기동 푸르지오시티 101동',search:'제기동 푸르지오시티',address:'서울 동대문구 제기동 (101동 정확 주소 확인 필요)',category:'맥주 모임',description:'마지막 장소에서 맥주와 안주',menu:'맥주 · 안주',hours:'개인 모임 · 종료시간 자유 설정',parking:'확인 필요',phone:'해당 없음',verified:false}
+ final:{id:'final',name:'동대문 푸르지오시티 101동',search:'동대문푸르지오시티',address:'서울 동대문구 왕산로 86 (단지 기준)',addressHint:'왕산로 86',category:'맥주 모임',description:'마지막 장소에서 맥주와 안주 · 지도는 단지 위치 표시',menu:'맥주 · 안주',hours:'개인 모임 · 종료시간 자유 설정',parking:'확인 필요',phone:'해당 없음',verified:false}
 };
 export type Budget={golf:number;billiards:number;food:number;meat:number;table:number;extra:number;alcohol:number;beer:number;snacks:number;transport:number};
 export type Settings={restaurant:RestaurantId;mode:TravelMode;party:number;start:string;durations:{golf:number;billiards:number;lunch:number;final:number};waits:{golf:number;billiards:number;lunch:number;final:number};budgets:Record<RestaurantId,Budget>};

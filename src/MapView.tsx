@@ -3,17 +3,19 @@ import {AlertTriangle,ExternalLink,MapPinned,Navigation2} from 'lucide-react';
 import {places,routeIds,type RestaurantId,type TravelMode,type PlaceId} from './config';
 import {getKakao,kakaoSearchLink,type ResolvedPlace} from './map';
 import {clock,type RouteState} from './logic';
+import {activities} from './simulation';
 
 type AgendaPoint={id:PlaceId;start:number|null};
-type Props={restaurant:RestaurantId;mode:TravelMode;resolved:Record<PlaceId,ResolvedPlace>|null;route:RouteState;agenda:AgendaPoint[];focusedPlace:PlaceId|null;onFocusPlace:(id:PlaceId)=>void;onMapError:(s:string)=>void};
+type Props={restaurant:RestaurantId;mode:TravelMode;resolved:Record<PlaceId,ResolvedPlace>|null;route:RouteState;agenda:AgendaPoint[];focusedPlace:PlaceId|null;activityPlace:PlaceId|null;onFocusPlace:(id:PlaceId)=>void;onMapError:(s:string)=>void};
 
-export default function MapView({restaurant,mode,resolved,route,agenda,focusedPlace,onFocusPlace,onMapError}:Props){
+export default function MapView({restaurant,mode,resolved,route,agenda,focusedPlace,activityPlace,onFocusPlace,onMapError}:Props){
  const host=useRef<HTMLDivElement>(null);
  const map=useRef<any>(null);
  const objects=useRef<any[]>([]);
  const [ready,setReady]=useState(false);
  const [loadError,setLoadError]=useState('');
  const currentIds=routeIds(restaurant);
+ const mapFocus=activityPlace??focusedPlace;
  useEffect(()=>{
   let active=true;
   getKakao().then(k=>{
@@ -41,7 +43,7 @@ export default function MapView({restaurant,mode,resolved,route,agenda,focusedPl
    const pos=new k.maps.LatLng(coord.lat,coord.lng);
    bounds.extend(pos);count++;
    const active=i<4;
-   const selected=id===focusedPlace;
+   const selected=id===mapFocus;
    const start=agenda.find(a=>a.id===id)?.start;
    const time=active?(start===null||start===undefined?'시간 미확인':clock(start)):'대안 식당';
    const tag=document.createElement('button');
@@ -56,7 +58,7 @@ export default function MapView({restaurant,mode,resolved,route,agenda,focusedPl
    const name=document.createElement('strong');
    name.textContent=places[id].name;
    const timeLabel=document.createElement('small');
-   timeLabel.textContent=active?`시작 ${time}`:'선택 전 대안';
+   timeLabel.textContent=active?`시작 ${time}${id==='final'?' · 단지 위치':''}`:'선택 전 대안';
    text.append(name,timeLabel);
    tag.append(index,text);
    tag.addEventListener('click',()=>onFocusPlace(id));
@@ -70,16 +72,23 @@ export default function MapView({restaurant,mode,resolved,route,agenda,focusedPl
    objects.current.push(line);
   });
   // Fit the entire itinerary only when a stop is not selected.
-  if(!focusedPlace&&count>0)map.current.setBounds(bounds,55,45,55,45);
- },[restaurant,resolved,route,ready,agenda,focusedPlace,onFocusPlace]);
+  if(!mapFocus&&count>0)map.current.setBounds(bounds,55,45,55,45);
+ },[restaurant,resolved,route,ready,agenda,mapFocus,onFocusPlace]);
 
  useEffect(()=>{
   if(!ready||!map.current||!window.kakao||!resolved)return;
   const k=window.kakao;
-  const current=focusedPlace?resolved[focusedPlace]?.coord:null;
+  const current=mapFocus?resolved[mapFocus]?.coord:null;
   if(current){
-   map.current.setCenter(new k.maps.LatLng(current.lat,current.lng));
-   map.current.setLevel(1,{animate:true});
+   const position=new k.maps.LatLng(current.lat,current.lng);
+   const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
+   if(activityPlace&&!reducedMotion){
+    map.current.setLevel(1);
+    map.current.panTo(position);
+   }else{
+    map.current.setCenter(position);
+    map.current.setLevel(1,{animate:!reducedMotion});
+   }
   }else{
    const bounds=new k.maps.LatLngBounds();
    let count=0;
@@ -87,7 +96,37 @@ export default function MapView({restaurant,mode,resolved,route,agenda,focusedPl
    if(route.status==='ready')route.segments.forEach(s=>s.path.forEach(([lng,lat])=>bounds.extend(new k.maps.LatLng(lat,lng))));
    if(count>0)map.current.setBounds(bounds,55,45,55,45);
   }
- },[focusedPlace,ready,resolved,restaurant,route]);
+ },[mapFocus,activityPlace,ready,resolved,restaurant,route]);
+
+ useEffect(()=>{
+  if(!ready||!map.current||!window.kakao||!activityPlace)return;
+  const coord=resolved?.[activityPlace]?.coord;
+  if(!coord)return;
+  const activity=activities[activityPlace];
+  const scene=document.createElement('div');
+  scene.className='map-activity';
+  scene.dataset.place=activityPlace;
+  scene.setAttribute('aria-hidden','true');
+  const group=document.createElement('div');
+  group.className='map-activity-group';
+  ['👨','👩','👨','👩'].forEach((person,index)=>{
+   const player=document.createElement('span');
+   player.className='map-activity-player';
+   player.style.setProperty('--player-delay',`${index*100}ms`);
+   const action=document.createElement('span');
+   action.className='map-activity-action';
+   action.textContent=activity.emoji;
+   player.append(person,action);
+   group.append(player);
+  });
+  const label=document.createElement('strong');
+  label.textContent=`${activity.prop} ${activity.label}`;
+  scene.append(group,label);
+  const {CustomOverlay,LatLng}=window.kakao.maps;
+  const overlay=new CustomOverlay({position:new LatLng(coord.lat,coord.lng),content:scene,yAnchor:-0.18,zIndex:30});
+  overlay.setMap(map.current);
+  return()=>overlay.setMap(null);
+ },[activityPlace,ready,resolved]);
 
  return <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#152a30] h-[370px] md:h-[565px]">
   <div className="absolute inset-0" ref={host}/>

@@ -16,4 +16,20 @@
 .map-stop-content strong{font-size:10px;line-height:1.2;word-break:keep-all}
 .map-stop-content small{font-size:10px;line-height:1.2;color:#e2c38a;font-weight:800}
 .map-stop-label-alt small{color:#b3bbbc}
+.timeline-stop-choice{display:grid;place-items:center;flex:none;width:19px;height:19px;border:1px solid #b8c6c599;border-radius:5px;color:#11252a}
+.timeline-place-button[aria-pressed="true"] .timeline-stop-choice{background:#d6b779;border-color:#d6b779}
+.timeline-map-button{flex:none;margin-top:8px;padding:8px;color:#d6b779;border-radius:8px}
+.timeline-map-button:hover{background:#d6b77924}
+.simulation-select{width:100%;margin-top:5px;padding:10px 12px;color:#fff;background:#14282d;border:1px solid #ffffff38;border-radius:9px;font-size:13px}
+.simulation-select:focus-visible{outline:2px solid #d6b779;outline-offset:2px}
+.primary-button:disabled{opacity:.5;cursor:default}
+.map-activity{min-width:156px;padding:9px 10px 7px;border:1px solid #e8d29b;border-radius:12px;background:#14282d;color:#fff;text-align:center;box-shadow:0 5px 20px #0008;pointer-events:none}
+.map-activity-group{display:flex;gap:7px;justify-content:center;margin-bottom:3px}
+.map-activity-player{position:relative;display:inline-block;font-size:25px;line-height:1.4}
+.map-activity-action{position:absolute;right:-4px;bottom:0;font-size:15px;line-height:1;transform-origin:left bottom;animation:activity-action .95s ease-in-out var(--player-delay) infinite}
+.map-activity[data-place="golf"] .map-activity-action,.map-activity[data-place="billiards"] .map-activity-action{animation-name:activity-swing}
+.map-activity strong{display:block;color:#f2d69c;font-size:11px}
+@keyframes activity-action{0%,100%{transform:translate(1px,1px)}50%{transform:translate(-4px,-8px) rotate(-15deg)}}
+@keyframes activity-swing{0%,100%{transform:rotate(18deg)}47%{transform:translate(4px,-7px) rotate(-42deg)}}
+@media(prefers-reduced-motion:reduce){.map-activity-action{animation:none}}
 @media(max-width:640px){.map-stop-label{max-width:135px;padding:5px 6px;gap:5px}.map-stop-number{width:22px;height:22px}.map-stop-content strong,.map-stop-content small{font-size:9px}}
