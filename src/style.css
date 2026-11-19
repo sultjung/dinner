@@ -31,8 +31,14 @@
 .map-activity-action{position:absolute;right:15px;bottom:9px;font-size:15px;line-height:1;animation:activity-lift 1.6s ease-in-out var(--player-delay) infinite}
 .map-activity strong{display:block;color:#f2d69c;font-size:12px}
 [data-activity="golf"] .map-activity-player{background:linear-gradient(#224947 48%,#41623c 49%)}
-[data-activity="golf"] .map-activity-person{animation:golf-swing 1.6s ease-in-out var(--player-delay) infinite;transform-origin:bottom center}
-[data-activity="golf"] .map-activity-action{animation-name:golf-ball;font-size:10px;right:25px}
+[data-activity="golf"] .map-activity-person{left:7px;top:3px;font-size:20px;animation:golf-swing 1.6s ease-in-out var(--player-delay) infinite;transform-origin:bottom center}
+[data-activity="golf"] .map-activity-person::after{content:'';display:block;width:14px;height:21px;margin:-2px auto 0;border-radius:5px 5px 2px 2px;background:linear-gradient(#78c2ac 60%,#263448 61%);box-shadow:0 1px 3px #0005}
+[data-activity="golf"] .map-activity-equipment{font-size:17px;opacity:.85}
+[data-activity="golf"] .map-activity-action{animation-name:golf-ball;font-size:8px;right:17px;bottom:9px}
+.map-golf-club{position:absolute;left:21px;top:25px;width:24px;height:3px;border-radius:2px;background:#d8e7e1;transform:rotate(-36deg);transform-origin:2px 50%;animation:golf-club 1.6s ease-in-out var(--player-delay) infinite}
+.map-golf-club::after{content:'';position:absolute;right:0;top:-2px;width:6px;height:6px;border-radius:2px;background:#e7c785}
+.map-travel-group{display:flex;gap:2px;padding:3px 5px;border:1px solid #e8d29b;border-radius:999px;background:#14282d;box-shadow:0 3px 12px #0008;pointer-events:none}
+.map-travel-group span{display:block;font-size:20px;line-height:1.25;animation:travel-step .65s ease-in-out var(--step-delay) infinite}
 [data-activity="billiards"] .map-activity-player{background:linear-gradient(#233839 52%,#21684e 53%);border-bottom:3px solid #886344}
 [data-activity="billiards"] .map-activity-player::after{content:'';position:absolute;left:-2px;bottom:14px;width:27px;height:3px;border-radius:2px;background:#f1c07d;transform:rotate(-15deg);animation:cue-shot 1.6s ease-in-out var(--player-delay) infinite}
 [data-activity="billiards"] .map-activity-action{animation-name:billiard-ball;font-size:9px;right:25px;bottom:10px}
@@ -48,8 +54,10 @@
 @keyframes activity-lift{0%,75%,100%{transform:none}35%,55%{transform:translate(-9px,-23px) rotate(-13deg)}}
 @keyframes beer-sip{0%,76%,100%{transform:none}35%,57%{transform:translate(-9px,-20px) rotate(-35deg)}}
 @keyframes golf-swing{0%,100%{transform:none}30%{transform:rotate(-19deg)}48%,62%{transform:rotate(15deg)}}
+@keyframes golf-club{0%,100%{transform:rotate(50deg)}30%{transform:rotate(-115deg)}44%{transform:rotate(58deg)}62%,78%{transform:rotate(-26deg)}}
+@keyframes travel-step{0%,100%{transform:translateY(0) rotate(-5deg)}50%{transform:translateY(-2px) rotate(5deg)}}
 @keyframes golf-ball{0%,43%{transform:none;opacity:1}70%,99%{transform:translate(24px,-33px);opacity:0}100%{opacity:1}}
 @keyframes cue-shot{0%,100%{transform:rotate(-15deg)}30%{transform:translateX(-8px) rotate(-15deg)}45%,60%{transform:translateX(9px) rotate(-15deg)}}
 @keyframes billiard-ball{0%,44%{transform:none}73%,100%{transform:translate(22px,3px)}}
-@media(prefers-reduced-motion:reduce){.map-activity-person,.map-activity-action,.map-activity-player::after{animation:none!important}}
+@media(prefers-reduced-motion:reduce){.map-activity-person,.map-activity-action,.map-activity-player::after,.map-golf-club,.map-travel-group span{animation:none!important}}
 @media(max-width:640px){.map-stop-label{max-width:135px;padding:5px 6px;gap:5px}.map-stop-number{width:22px;height:22px}.map-stop-content strong,.map-stop-content small{font-size:9px}}

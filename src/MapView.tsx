@@ -3,13 +3,13 @@ import {AlertTriangle,ExternalLink,MapPinned,Navigation2} from 'lucide-react';
 import {places,routeIds,type RestaurantId,type TravelMode,type PlaceId} from './config';
 import {getKakao,kakaoSearchLink,type ResolvedPlace} from './map';
 import {clock,type RouteState} from './logic';
-import {activities} from './simulation';
+import {activities,tracePath,travelDurationMs} from './simulation';
 import SimulationClock from './SimulationClock';
 
 type AgendaPoint={id:PlaceId;start:number|null};
-type Props={restaurant:RestaurantId;mode:TravelMode;resolved:Record<PlaceId,ResolvedPlace>|null;route:RouteState;agenda:AgendaPoint[];focusedPlace:PlaceId|null;activityPlace:PlaceId|null;activityTiming:{elapsed:number;duration:number}|null;simulationStops:PlaceId[];onFocusPlace:(id:PlaceId)=>void;onMapError:(s:string)=>void};
+type Props={restaurant:RestaurantId;mode:TravelMode;resolved:Record<PlaceId,ResolvedPlace>|null;route:RouteState;agenda:AgendaPoint[];focusedPlace:PlaceId|null;activityPlace:PlaceId|null;activityTiming:{elapsed:number;duration:number}|null;simulationStops:PlaceId[];travelFrom:PlaceId|null;travelTo:PlaceId|null;onTravelEnd:()=>void;onFocusPlace:(id:PlaceId)=>void;onMapError:(s:string)=>void};
 
-export default function MapView({restaurant,mode,resolved,route,agenda,focusedPlace,activityPlace,activityTiming,simulationStops,onFocusPlace,onMapError}:Props){
+export default function MapView({restaurant,mode,resolved,route,agenda,focusedPlace,activityPlace,activityTiming,simulationStops,travelFrom,travelTo,onTravelEnd,onFocusPlace,onMapError}:Props){
  const host=useRef<HTMLDivElement>(null);
  const map=useRef<any>(null);
  const objects=useRef<any[]>([]);
@@ -23,6 +23,7 @@ export default function MapView({restaurant,mode,resolved,route,agenda,focusedPl
   return {from,to,segment};
  });
  const hasGuideLines=legs.some(({from,to,segment})=>!segment&&resolved?.[from]?.coord&&resolved?.[to]?.coord);
+ const travelSegment=legs.find(leg=>leg.from===travelFrom&&leg.to===travelTo)?.segment;
  useEffect(()=>{
   let active=true;
   getKakao().then(k=>{
@@ -83,11 +84,11 @@ export default function MapView({restaurant,mode,resolved,route,agenda,focusedPl
    objects.current.push(line);
   });
   // Fit the entire itinerary only when a stop is not selected.
-  if(!mapFocus&&count>0)map.current.setBounds(bounds,55,45,55,45);
- },[restaurant,resolved,route,ready,agenda,mapFocus,onFocusPlace,simulationStops]);
+  if(!travelFrom&&!mapFocus&&count>0)map.current.setBounds(bounds,55,45,55,45);
+ },[restaurant,resolved,route,ready,agenda,mapFocus,onFocusPlace,simulationStops,travelFrom]);
 
  useEffect(()=>{
-  if(!ready||!map.current||!window.kakao||!resolved)return;
+  if(travelFrom||!ready||!map.current||!window.kakao||!resolved)return;
   const k=window.kakao;
   const current=mapFocus?resolved[mapFocus]?.coord:null;
   if(current){
@@ -107,7 +108,46 @@ export default function MapView({restaurant,mode,resolved,route,agenda,focusedPl
    legs.forEach(({segment})=>segment?.path.forEach(([lng,lat])=>bounds.extend(new k.maps.LatLng(lat,lng))));
    if(count>0)map.current.setBounds(bounds,55,45,55,45);
   }
- },[mapFocus,activityPlace,ready,resolved,restaurant,route,simulationStops]);
+ },[mapFocus,activityPlace,ready,resolved,restaurant,route,simulationStops,travelFrom]);
+
+ useEffect(()=>{
+  if(!ready||!map.current||!window.kakao||!travelFrom||!travelTo||!resolved)return;
+  const start=resolved[travelFrom]?.coord;
+  const end=resolved[travelTo]?.coord;
+  if(!start||!end){onTravelEnd();return}
+  const {CustomOverlay,LatLng,LatLngBounds}=window.kakao.maps;
+  const points=travelSegment?[start,...travelSegment.path.map(([lng,lat])=>({lat,lng})),end]:[start,end];
+  const positionAt=tracePath(points);
+  const bounds=new LatLngBounds();
+  points.forEach(({lat,lng})=>bounds.extend(new LatLng(lat,lng)));
+  if(points.some(point=>point.lat!==start.lat||point.lng!==start.lng))map.current.setBounds(bounds,86,64,86,64);
+  const group=document.createElement('div');
+  group.className='map-travel-group';
+  group.setAttribute('aria-hidden','true');
+  const travelers=mode==='walking'?['🚶','🚶‍♀️','🚶','🚶‍♀️']:['🚗'];
+  travelers.forEach((emoji,index)=>{
+   const walker=document.createElement('span');
+   walker.textContent=emoji;
+   walker.style.setProperty('--step-delay',`${index*125}ms`);
+   group.append(walker);
+  });
+  const overlay=new CustomOverlay({position:new LatLng(start.lat,start.lng),content:group,yAnchor:0.68,zIndex:35});
+  overlay.setMap(map.current);
+  const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const started=performance.now();
+  let frame=0;
+  const animate=(now:number)=>{
+   const progress=Math.min(1,(now-started)/travelDurationMs);
+   if(!reducedMotion||progress===1){
+    const {lat,lng}=positionAt(progress);
+    overlay.setPosition(new LatLng(lat,lng));
+   }
+   if(progress<1)frame=requestAnimationFrame(animate);
+   else onTravelEnd();
+  };
+  frame=requestAnimationFrame(animate);
+  return()=>{cancelAnimationFrame(frame);overlay.setMap(null)};
+ },[travelFrom,travelTo,travelSegment,ready,resolved,mode,onTravelEnd]);
 
  useEffect(()=>{
   if(!ready||!map.current||!window.kakao||!activityPlace)return;
@@ -135,6 +175,11 @@ export default function MapView({restaurant,mode,resolved,route,agenda,focusedPl
    action.className='map-activity-action';
    action.textContent=activity.action;
    player.append(person,equipment,action);
+   if(activity.type==='golf'){
+    const club=document.createElement('span');
+    club.className='map-golf-club';
+    player.append(club);
+   }
    group.append(player);
   }
   const label=document.createElement('strong');
@@ -154,7 +199,9 @@ export default function MapView({restaurant,mode,resolved,route,agenda,focusedPl
     <span className="rounded-lg bg-ink/90 border border-white/10 text-xs px-3 py-2 font-semibold flex gap-2 items-center"><Navigation2 size={13} className="text-emerald"/>{mode==='walking'?'WALKING ROUTE':'DRIVING ROUTE'}</span>
     {hasGuideLines&&<span className="rounded-lg bg-ink/90 px-2 py-1 text-[10px] text-gold">점선 · 장소 연결선</span>}
    </div>
-   {activityPlace&&activityTiming
+   {travelFrom
+    ? <span className="rounded-lg bg-ink/90 border border-white/10 px-3 py-2 text-xs">{mode==='walking'?'도보':'차량'} 이동 중{travelSegment?'':' · 연결선 연출'}</span>
+    : activityPlace&&activityTiming
     ? <SimulationClock key={activityPlace} {...activityTiming}/>
     : <span className="rounded-lg bg-ink/90 border border-white/10 text-xs px-3 py-2">{route.status==='ready'?'실제 경로 표시':'경로 미확인'}</span>}
   </div>
